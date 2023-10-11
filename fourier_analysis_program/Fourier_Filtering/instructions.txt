@@ -1,0 +1,82 @@
+Figure:Entropy_Detection_Basic_Signal
+Freq = 1200
+time = 40s
+CritFreqStart=6
+CritFreqEnd=50
+CritFreqStep=1
+COMPOSITE GRAPH
+Smoothened
+T_const=1.00 – Determined through trial and error
+Samples_Per_Window = 5
+
+Figure:Entropy_Detection_Composite_Brain_1
+Freq = 600
+time = 617.5
+CritFreqStart=40
+CritFreqEnd=110
+CritFreqStep=10
+COMPOSITE GRAPH
+Smoothened
+T_const=0.75
+Samples_Per_Window = 5 – Any higher and processing times take a while
+
+Figure:Entropy_Detection_FourierGuess_Brain_1
+Freq = 600
+time = 617.5
+CritFreq=100
+EpsStep = 3
+Smoothened
+T_const=0.75
+Samples_Per_Window = 5 – Any higher and processing times take a while
+
+Figure:Entropy_Detection_Composite_Brain_2
+Freq = 600
+time = 617.5
+CritFreqStart=40
+CritFreqEnd=110
+CritFreqStep=10
+COMPOSITE GRAPH
+Smoothened
+T_const=0.75
+Samples_Per_Window = 5 – Any higher and processing times take a while
+
+Figure:Entropy_Detection_Chaotic_Ukulele
+Freq = 600
+time = 300
+CritFreqStart=40
+CritFreqEnd=110
+CritFreqStep=2
+COMPOSITE GRAPH
+Smoothened
+T_const=0.75
+Samples_Per_Window = 5 – Any higher and processing times take a while
+
+Figure:Entropy_Detection_Chaotic_Ukulele_Lower_freq
+Freq = 600
+time = 300
+CritFreqStart=4
+CritFreqEnd=20
+CritFreqStep=2
+COMPOSITE GRAPH
+Smoothened
+T_const=0.75
+Samples_Per_Window = 5 – Any higher and processing times take a while
+NON-COMPOSITE GRAPH, USED FFT TO FIND POINTS, PROVIDED IN ZIP.
+Epsilon = 60
+Crit Frequency = 5
+ 
+Figure:Entropy_Detection_Ordered_Ukulele
+Freq = 600
+time = 600
+CritFreqStart=4
+CritFreqEnd=30
+CritFreqStep=2
+COMPOSITE GRAPH
+Smoothened
+T_const=0.75
+Samples_Per_Window = 5 – Any higher and processing times take a while
+NON-COMPOSITE GRAPH, USED FFT TO FIND CRIT POINTS PROVIDED IN ZIP.
+Epsilon = 60
+Crit Frequency = 5
+NOTE: Differential graph uses the non-composite versions.
+
