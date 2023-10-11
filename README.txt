@@ -1,4 +1,4 @@
-# Fourier analysis program
+# Entropy analysis through a fourier transformation program
 This program analyses a set of data.
 The frequency and time of the dataset is matched so that a proper window for processing can be detemrined.
 A specific critical frequency interval can then be inputted in order to see if a signal lies within that window.
