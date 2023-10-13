@@ -1,4 +1,3 @@
-import math
 import itertools
 import time
 import numpy as np
@@ -43,22 +42,33 @@ def rve_of_singal(time_signal, signal, frequency, τ_const = 1, epsilon_step = 4
 
     time_entropy = time_signal[:np.size(entropy_arrays, axis=0)]
 
-    # TEST DOING SOME SORTING TO FIND PEAKS TO HOPEFULLY IDENTIFY ANOMALOUS DATA.
-    entropy_arrays_sorted = np.sort(entropy_arrays)
-    # Take the average of the sorted values
-    entropy_arrays_sorted_average = np.average(entropy_arrays_sorted)
-    entropy_arrays_sorted_std = np.std(entropy_arrays_sorted)
-    entropy_arrays_sorted_filter = entropy_arrays_sorted_average - entropy_arrays_sorted_std # Should filter 84.1% data
-
-    entropy_arrays_filtered = np.where(entropy_arrays < entropy_arrays_sorted_filter)
-
-    entropy_arrays_sorted_indices = np.searchsorted(entropy_arrays, entropy_arrays_sorted)
-
-    a = 50
-
     return entropy_arrays, time_entropy
 
+# Realistically we want to average the outputted entropy first. Below effectively smoothens curve.
+def entropy_window_averager(time_entropy, entropy_arrays):
+
+    size_of_window = 400 # Window averaging size.
+    to_average_entropy = np.lib.stride_tricks.sliding_window_view(entropy_arrays, size_of_window)
+    entropy_averaged = np.sum(to_average_entropy, axis=1) / size_of_window
+    time_entropy_averaged = time_entropy[0:np.size(entropy_averaged)]
+
+    return entropy_averaged, time_entropy_averaged
+
+# After that we want to take the differentiation of the average in order to find the whereabouts of maximal changes.
+# This function also auto-smoothens. Accepts a parameter to suggest "Smoothness" amount.
+# You can specify the order of differentiation by changing o_differ. Default 1.
+# Best accepts entropic values that are averaged.
+def entropy_differentiator(time_entropy, entropy_averaged, size_of_window = 400, o_differ = 1):
+
+    entropy_arrays_differentiated = np.abs(np.diff(entropy_averaged, o_differ))
+    to_average_diff = np.lib.stride_tricks.sliding_window_view(entropy_arrays_differentiated, size_of_window)
+    diff_averaged = np.sum(to_average_diff, axis=1) / size_of_window
+    time_diff_averaged = time_entropy[0:np.size(diff_averaged)]
+
+    return diff_averaged, time_diff_averaged
+
 # Below is the particular function that takes all the processing time, we compile this using njit.
+
 @njit
 def optimised_rve(signal_noised_window_indices, histy_stuff, alpha_filter, all_to_bin_list_sequential, total_bins, max_section_width, samples_per_window):
 
@@ -93,6 +103,39 @@ def optimised_rve(signal_noised_window_indices, histy_stuff, alpha_filter, all_t
 
     return entropy_arrays
 
+# Below takes a range of f_crit values -> epsilon and sums up all of the graphs into one big one.
+
+def rve_frequency_averager(time_signal, signal, frequency, f_crits_min = 3, f_crits_max = 20, f_crits_step = 1, τ_const = 0.75, samples_per_window = 5):
+
+    f_crits = np.arange(f_crits_min, f_crits_max, f_crits_step)
+    epsilon_step_crits = np.ceil(frequency / (2 * f_crits))
+    epsilon_step_crits = epsilon_step_crits  # Removes repeat values. Try one without rmv repeat vals
+
+    # To avoid an int error, we vectorise and then return practically the same values but in int forms.
+    epsilon_step_crits = np.vectorize(int)(epsilon_step_crits)
+
+    # Keeps a track of the lowest array size to remove last element entropy bias for the sum, starting from largest
+    # possible value.
+    lowest_array_size = np.size(signal)
+    entropy_arrays_summer = np.zeros(np.size(signal))
+
+    # Now for some multi-processing batch shenanigans that will clearly not be pain. TO BE DONE LATER
+    # BATCH_SIZE = epsilon_step_crits // os.cpu_count()  # Hopefully finds the most efficient batch size to compute to this set number.
+
+    for epsilon_step_i in epsilon_step_crits:
+
+        entropy_arrays_temp, time_entropy_temp = rve_of_singal(time_signal, signal, frequency, τ_const, epsilon_step_i, samples_per_window)
+        current_array_size = np.size(entropy_arrays_temp)
+
+        entropy_arrays_summer[0:current_array_size] = entropy_arrays_summer[0:current_array_size] + entropy_arrays_temp
+        if lowest_array_size > current_array_size:
+            lowest_array_size = current_array_size
+
+    # Our final averaged shenanigans, time to plot.
+    entropy_arrays_averaged = entropy_arrays_summer[0:lowest_array_size] / np.size(epsilon_step_crits)
+    entropy_time_averaged = time_signal[0:lowest_array_size]
+
+    return entropy_arrays_averaged, entropy_time_averaged
 
 def anomalous_point_finder(entropy_signal):
     sorted_entropy_signal = np.sort(entropy_signal, axis=0)
